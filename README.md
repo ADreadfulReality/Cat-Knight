@@ -1,12 +1,18 @@
 # Cat-Knight
 ![Cat Knight](https://github.com/ADreadfulReality/Cat-Knight/blob/main/Knight%20Cat%20(2).png?raw=true)
 
+# To view the sprites and planning board of this game, consider checking out my website!: 
+
+
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Motivation](#motivation)
 3. [How to Play](#how-to-play)
 4. [Installation](#installation-and-running-the-project)
-5. 
+5. [Technologies Used](#Technologies-used)
+6. [Things I Wanted to Implement](#Things-I-Wanted-to-Implement)
+7. [Challenges Faced](#Challenges-Faced)
+8. [What I Learned](#What-I-Learned)
 
 ## Introduction
 _Cat Knight_ is a fun action-advanture game where you control a knight cat as they journey through the pixel world to fight off slimes, dodge bomb-throwing plants, or conquer bosses through every level. Players can jump, slash, and explore through a dynamimc game world created using the **Phaser framework.**
@@ -37,7 +43,7 @@ To run _Cat Knight_ locally, follow these steps:
 4. **Directly opening the HTML file:**
    - You can also open the index.html file directly into your web broswer by double-clicking it or dragging it into the browser window.
 
-  [SIDE NOTE!: I used AI to generate this part for me, I have never installed or opened other users works before and therefore have no experience :( ]
+  [SIDE NOTE!: I used AI to generate this part for me, I have never installed or opened other users works before and therefore have no experience :( I also work primarily on my school issued device so I am limited to certain features.]
 
 
 ## Technologies Used
@@ -45,14 +51,14 @@ To run _Cat Knight_ locally, follow these steps:
 - **HTML5, CSS3, JavaScript:** To structure and style the game.
 - **Visual Studio Code:** To code the game, well duh.
 
+## Things I Wanted to Implement
+- Levels after level 1
+- Fixing the players jump in the game
+- Fixing the slime hitbox or making a new mechnism for it
+- Having other mobs in the game
+- Adding more player mechnisms
 
 ## Challenges Faced
-
+I've faced a **heavy** amount of challenges throught this project and had to create various different test scripts in order to get the result I desired. Even the game now is pretty terrible mechnism wise but least I tried my best. I think the most set back was trying to create multiple spites for me since I'm more used to doing these on development platforms rather than all in a single script. Another thing was trying to make the game more difficult and imlementing hearts for the different mobs in the process. I had a lot of things I really wanted to make in the game but I didn't feel motivated enough to go back to my game and add on after I completed my Game Design course. I also want to move on to other future projects, but I'll come back to Cat Knight eventually.
 
 ## What I Learned
-
-
-## Features
-
-
-(future features, webstie)
