@@ -1,7 +1,7 @@
 # Cat-Knight
 ![Cat Knight](https://github.com/ADreadfulReality/Cat-Knight/blob/main/Knight%20Cat%20(2).png?raw=true)
 
-# To view the sprites and planning board of this game, consider checking out my website!: 
+### To view the sprites and planning board of this game, consider checking out my website!: 
 
 
 ## Table of Contents
