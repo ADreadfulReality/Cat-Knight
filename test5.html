@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Knight (for now)</title>
+    <script src="js/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        canvas {
+            margin: auto;
+            padding: 0;
+            display: block;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        class Boot extends Phaser.Scene {
+            constructor() {
+                super("boot");
+            }
+
+            preload() {
+                this.load.spritesheet("knight", "assets/catknight.png", { frameWidth: 38, frameHeight: 40 });
+                this.load.image("platform", "assets/platform.png");
+                this.load.image("tutorial", "assets/tutorial.png");
+                this.load.image("blank", "assets/blank.png");
+                this.load.spritesheet("plant", "assets/plant.png", { frameWidth: 62, frameHeight: 52 });
+                this.load.image("bomb", "assets/bomb.png");
+                this.load.image("heart", "assets/heart.png");
+                this.load.image("deadheart", "assets/deadheart.png");
+                this.load.spritesheet("slime", "assets/slime.png", { frameWidth: 31, frameHeight: 24 });
+                this.load.spritesheet("vine", "assets/vine.png", { frameWidth: 70, frameHeight: 52 });
+            }
+
+            create() {
+                this.scene.start("game");
+            }
+        }
+
+        class Slime extends Phaser.Physics.Arcade.Sprite {
+            constructor(scene, x, y, leftBound, rightBound) {
+                super(scene, x, y, "slime");
+                scene.add.existing(this);
+                scene.physics.add.existing(this);
+
+                this.setCollideWorldBounds(true);
+                this.setImmovable(false);
+                this.body.setAllowGravity(true);
+                this.setBounce(0.1);
+
+                this.health = 3;
+
+                this.anims.create({
+                    key: "slimemove",
+                    frames: this.anims.generateFrameNumbers("slime", { start: 0, end: 1 }),
+                    frameRate: 3,
+                    repeat: -1
+                });
+
+                this.anims.play("slimemove", true);
+
+                this.leftBound = leftBound;
+                this.rightBound = rightBound;
+
+                this.moveDirection = 'right';
+                //  this.setVelocityX(50);
+            }
+
+            /*      update() {
+                      if (this.moveDirection === 'right' && this.x >= this.rightBound) {
+                          this.setVelocityX(-50);
+                          this.setFlipX(true);
+                          this.moveDirection = 'left';
+                      } else if (this.moveDirection === 'left' && this.x <= this.leftBound) {
+                          this.setVelocityX(50);
+                          this.setFlipX(false);
+                          this.moveDirection = 'right';
+                      }
+                  } */
+        }
+
+        class Plant extends Phaser.Physics.Arcade.Sprite {
+            constructor(scene, x, y) {
+                super(scene, x, y, "plant");
+                scene.add.existing(this);
+                scene.physics.add.existing(this);
+
+                this.setImmovable(true);
+
+                this.anims.create({
+                    key: "plantIdle",
+                    frames: this.anims.generateFrameNumbers("plant", { start: 0, end: 0 }),
+                    frameRate: 25,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: "plantHit",
+                    frames: this.anims.generateFrameNumbers("plant", { start: 1, end: 1 }),
+                    frameRate: 25,
+                    repeat: 0
+                });
+
+                if (!scene.anims.get("plantDie")) {
+                    this.anims.create({
+                        key: "plantDie",
+                        frames: this.anims.generateFrameNumbers("plant", { start: 1, end: 1 }),
+                        frameRate: 25,
+                        repeat: 0
+                    });
+                }
+
+                this.anims.play("plantIdle", true);
+
+                scene.physics.add.collider(this, scene.platforms);
+
+                this.hitboxes = scene.physics.add.group();
+                this.hitboxLeft = this.hitboxes.create(this.x - 170, this.y, "blank").setSize(300, 60);
+                this.hitboxRight = this.hitboxes.create(this.x + 170, this.y, "blank").setSize(300, 60);
+
+                this.hitboxes.getChildren().forEach(hitbox => {
+                    hitbox.body.setImmovable(true);
+                    hitbox.body.setAllowGravity(false);
+                });
+
+                scene.physics.add.overlap(scene.player, this.hitboxes, (player, hitbox) => {
+                    this.turnTowardsPlayer(player);
+                    this.spawnBomb(player);
+                });
+            }
+
+            turnTowardsPlayer(player) {
+                if (player.x < this.x) {
+                    this.setFlipX(true);
+                } else {
+                    this.setFlipX(false);
+                }
+            }
+
+            spawnBomb(player) {
+                if (!this.bombTimer) {
+                    this.bombTimer = this.scene.time.addEvent({
+                        delay: 1500,
+                        callback: () => {
+                            const bomb = this.scene.physics.add.sprite(this.x, this.y, "bomb");
+                            this.scene.physics.moveToObject(bomb, player, 200);
+                            bomb.setCollideWorldBounds(true);
+                            bomb.body.onWorldBounds = true;
+
+                            this.scene.physics.add.collider(bomb, this.scene.platforms, () => {
+                                this.scene.time.addEvent({
+                                    delay: 1000,
+                                    callback: () => {
+                                        bomb.destroy();
+                                    }
+                                });
+                            });
+
+                            this.scene.physics.add.overlap(player, bomb, () => {
+
+                                // Flash red tint when hit by bomb
+                                if (!player.invulnerable) {
+                                    player.setTint(0xff0000);
+                                    player.invulnerable = true;
+                                    this.scene.time.addEvent({
+                                        delay: 200,
+                                        callback: () => {
+                                            player.clearTint();
+                                            player.invulnerable = false;
+                                        },
+                                        callbackScope: this
+                                    });
+                                }
+
+                                this.scene.LoseLife();
+
+                                bomb.destroy(); // Destroy the bomb
+                            });
+
+
+                            this.bombTimer = null;
+                        },
+                        callbackScope: this
+                    });
+                }
+            }
+
+
+
+            hitByPlayer() {
+                if (!this.scene) {
+                    console.log("this.scene is undefined or null");
+                    return;
+                }
+                if (!this.body) {
+                    console.log("this.body is undefined or null");
+                    return;
+                }
+
+                if (!this.scene.physics) {
+                    console.log("this.scene.physics is undefined or null");
+                    return;
+                }
+
+                if (!this.scene.time) {
+                    console.log("this.scene.time is undefined or null");
+                    return;
+                }
+
+                this.anims.play("plantHit", true);
+
+                this.scene.tweens.add({
+                    targets: this,
+                    tint: { from: 0xffffff, to: 0xff0000 },
+                    yoyo: true,
+                    repeat: 5,
+                    duration: 100,
+                    onComplete: () => {
+                        this.anims.play("plantDie", true);
+                        this.scene.time.delayedCall(500, () => {
+                            this.destroy();
+                        });
+                    }
+                });
+
+                this.scene.time.delayedCall(50, () => {
+                    this.anims.play("plantDie", true);
+
+                    this.hitboxes.clear(true, true); //clear hitboxes first!!!!
+
+                    // Destroy the plant after a delay
+                    this.scene.time.delayedCall(500, () => {
+                        console.log("Destroying the plant");
+                        this.destroy();
+                        // game crashes after plant is removed, why?
+                    });
+                });
+            }
+
+
+
+        }
+
+        class Game extends Phaser.Scene {
+            constructor() {
+                super("game");
+                this.lives = 3;
+                this.heart1 = null;
+                this.heart2 = null;
+                this.heart3 = null;
+                this.slimeHits = 0;
+                this.playerAttackCooldown = false;
+                this.playerAttackDelay = 500;
+                this.slimeGroup = null;
+                this.plantGroup = null;
+                this.bombs = null;
+            }
+
+            create() {
+                this.platforms = this.physics.add.staticGroup();
+                const platform = this.platforms.create(400, 600, "platform");
+                platform.setDisplaySize(850, 70).body.setSize(1500, 70, true);
+
+                this.platforms.create(730, 480, "platform");
+                const platform1 = this.platforms.create(210, 480, "platform");
+                platform1.setOrigin(0.5, 0.5);
+                platform1.body.setSize(520, 60, true);
+                platform1.setDisplaySize(530, 70);
+
+                const platform2 = this.platforms.create(320, 350, "platform");
+                platform2.setOrigin(0.5, 0.5);
+                platform2.body.setSize(330, 50, true);
+                platform2.setDisplaySize(340, 60);
+
+                const platform3 = this.platforms.create(700, 320, "platform");
+                platform3.setOrigin(0.5, 0.5);
+                platform3.body.setSize(200, 50, true);
+                platform3.setDisplaySize(210, 60);
+
+                const platform4 = this.platforms.create(300, 180, "platform");
+                platform4.setOrigin(0.5, 0.5);
+                platform4.body.setSize(600, 50, true);
+                platform4.setDisplaySize(610, 60);
+
+                const platform5 = this.platforms.create(400, 20, "platform");
+                platform5.setOrigin(0.5, 0.5);
+                platform5.body.setSize(990, 70, true);
+                platform5.setDisplaySize(1000, 80);
+
+                this.tutorial = this.physics.add.staticSprite(200, 540, "tutorial").setScale(1.5);
+                this.blank = this.physics.add.staticSprite(1, 110, "blank").setSize(100, 100, true);
+
+                this.heart1 = this.add.image(750, 30, "heart").setScale(1.5);
+                this.heart2 = this.add.image(700, 30, "heart").setScale(1.5);
+                this.heart3 = this.add.image(650, 30, "heart").setScale(1.5);
+
+                this.player = this.physics.add.sprite(200, 530, "knight");
+                this.player.setBounce(0.001); //???? //not working.
+                this.player.setCollideWorldBounds(true);
+
+                this.anims.create({
+                    key: "left",
+                    frames: this.anims.generateFrameNumbers("knight", { start: 0, end: 2 }),
+                    frameRate: 15,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: "right",
+                    frames: this.anims.generateFrameNumbers("knight", { start: 4, end: 6 }),
+                    frameRate: 15,
+                    repeat: -1
+                });
+                this.anims.create({
+                    key: "slash",
+                    frames: this.anims.generateFrameNumbers("knight", { start: 3, end: 4 }),
+                    frameRate: 5,
+                    repeat: -1
+                });
+
+                this.cursors = this.input.keyboard.createCursorKeys();
+
+                this.physics.add.collider(this.player, this.platforms);
+
+                this.slimeGroup = this.physics.add.group();
+                this.plantGroup = this.physics.add.group();
+                this.bombs = this.physics.add.group();
+
+                this.slime1 = new Slime(this, 100, 100, 50, 300);
+                this.slime2 = new Slime(this, 640, 200, 500, 800);
+                this.slime3 = new Slime(this, 70, 410, 50, 450);
+                this.slimeGroup.addMultiple([this.slime1, this.slime2, this.slime3]);
+
+                const plant1 = new Plant(this, 730, 420);
+                this.plantGroup.add(plant1);
+                const plant2 = new Plant(this, 300, 130);
+                this.plantGroup.add(plant2);
+
+                this.physics.add.collider(this.slimeGroup, this.platforms);
+                this.physics.add.collider(this.plantGroup, this.platforms);
+
+                this.addColliders();
+
+                this.input.keyboard.on("keydown-DOWN", () => this.methods.attack(), this);
+
+
+
+
+            }
+
+            update() {
+
+                this.playerIsOnHitBox = false;
+                //check if player is overlapping with plant hixbox
+                this.plantGroup.getChildren().forEach(plant => {
+                    if (this.physics.overlap(this.player, plant.hitboxes)) {
+                        this.playerIsOnHitBox = true;
+                        console.log("Player is touching hitbox");
+                    }
+                });
+
+                if (this.slime1.body.velocity.x === 0) {
+                    this.slime1.setVelocity(50);
+                }
+
+                if (this.slime2.body.velocity.x === 0) {
+                    this.slime2.setVelocity(50);
+                }
+
+                if (this.slime3.body.velocity.x === 0) {
+                    this.slime3.setVelocity(50);
+                }
+
+                if (this.slime1.x <= 200 && this.slime1.body.velocity.x < 0) {
+                    this.slime1.setVelocityX(50); //right
+                    this.slime1.setFlipX(false);
+                } else if (this.slime1.x >= 470 && this.slime1.body.velocity.x > 0) {
+                    this.slime1.setVelocityX(-50); //left
+                    this.slime1.setFlipX(true);
+                }
+
+                if (this.slime2.x <= 620 && this.slime2.body.velocity.x < 0) {
+                    this.slime2.setVelocityX(50); //right
+                    this.slime2.setFlipX(false);
+                } else if (this.slime2.x >= 800 && this.slime2.body.velocity.x > 0) {
+                    this.slime2.setVelocityX(-50); //left
+                    this.slime2.setFlipX(true);
+                }
+
+                if (this.slime3.x <= 10 && this.slime3.body.velocity.x < 0) {
+                    this.slime3.setVelocityX(50); //right
+                    this.slime3.setFlipX(false);
+                } else if (this.slime3.x >= 450 && this.slime3.body.velocity.x > 0) {
+                    this.slime3.setVelocityX(-50); //left
+                    this.slime3.setFlipX(true);
+                }
+
+
+
+                //  console.log(`Slime position: ${this.slime1.x}, velocity: ${this.slime1.body.velocity.x}`);
+
+                if (this.cursors.left.isDown) {
+                    this.player.setVelocityX(-160); //left
+                    this.player.anims.play("left", true);
+                } else if (this.cursors.right.isDown) {
+                    this.player.setVelocityX(160); //right
+                    this.player.anims.play("right", true);
+                } else {
+                    this.player.setVelocityX(0);
+                    this.player.anims.stop();
+                }
+
+                if (this.cursors.up.isDown && this.player.body.touching.down && !this.playerIsOnHitBox) { // add not touching platform
+                    this.player.setVelocityY(-300); //HERE SET BOUNCE INSTEAD setVelocity overrides
+                }
+
+                if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
+                    this.methods.attack();
+                }
+
+                this.slimeGroup.getChildren().forEach(slime => {
+                    slime.update();
+                });
+            }
+
+            addColliders() {
+                this.slimeGroup.getChildren().forEach(slime => {
+                    this.physics.add.collider(this.player, slime, this.methods.handlePlayerSlimeCollision, null, this);
+                });
+
+                this.plantGroup.getChildren().forEach(plant => {
+                    this.physics.add.overlap(this.player, plant.hitboxes, this.methods.handlePlayerPlantOverlap, null, this);
+                });
+            }
+
+            methods = {
+                attack: () => {
+                    if (this.playerAttackCooldown) return;
+
+                    this.player.anims.play("slash", true);
+                    this.playerAttackCooldown = true;
+
+                    this.time.addEvent({
+                        delay: this.playerAttackDelay,
+                        callback: () => {
+                            this.playerAttackCooldown = false;
+                        }
+                    });
+
+                    this.plantGroup.getChildren().forEach(plant => {
+                        if (this.physics.overlap(this.player, plant)) {
+                            plant.hitByPlayer();
+                        }
+                    });
+
+                    this.slimeGroup.getChildren().forEach(slime => {
+                        if (this.physics.overlap(this.player, slime)) {
+                            slime.health -= 1;
+                            if (slime.health <= 0) {
+                                slime.destroy();
+                            }
+                        }
+                    });
+                },
+                handlePlayerSlimeCollision: (player, slime) => {
+                    if (!player.invulnerable) {
+                        player.invulnerable = true;
+
+                        // Flash red tint
+                        this.tweens.add({
+                            targets: player,
+                            tint: { from: 0xffffff, to: 0xff0000 },
+                            yoyo: true,
+                            repeat: 5,
+                            duration: 100,
+                            onComplete: () => {
+                                player.clearTint();
+                                player.invulnerable = false;
+                            }
+                        });
+
+                        this.LoseLife();
+                    }
+                },
+
+                handlePlayerPlantOverlap: (player, hitbox) => {
+                    const plant = this.plantGroup.getChildren().find(p => p.hitboxes.contains(hitbox));
+                    if (plant) {
+                        plant.turnTowardsPlayer(player);
+                        plant.spawnBomb(player);
+                    }
+                }
+            }
+
+            LoseLife() {
+                if (this.lives === 3) {
+                    this.heart1.setTexture("deadheart");
+                } else if (this.lives === 2) {
+                    this.heart2.setTexture("deadheart");
+                } else if (this.lives === 1) {
+                    this.heart3.setTexture("deadheart");
+                }
+                this.lives -= 1;
+                if (this.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+
+            gameOver() {
+                this.player.setTint(0xff0000);
+                this.player.anims.play("turn");
+                this.physics.pause();
+                console.log("Game Over! Implement the game over screen here.");
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: "game",
+            physics: {
+                default: "arcade",
+                arcade: {
+                    gravity: { y: 300 },
+                    debug: true
+                }
+            },
+            scene: [Boot, Game]
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+
+</html>
