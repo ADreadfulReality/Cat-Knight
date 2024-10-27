@@ -62,3 +62,6 @@ To run _Cat Knight_ locally, follow these steps:
 I've faced a **heavy** amount of challenges throught this project and had to create various different test scripts in order to get the result I desired. Even the game now is pretty terrible mechnism wise but least I tried my best. I think the most set back was trying to create multiple spites for me since I'm more used to doing these on development platforms rather than all in a single script. Another thing was trying to make the game more difficult and imlementing hearts for the different mobs in the process. I had a lot of things I really wanted to make in the game but I didn't feel motivated enough to go back to my game and add on after I completed my Game Design course. I also want to move on to other future projects, but I'll come back to Cat Knight eventually.
 
 ## What I Learned
+
+## License
+This project is licensed under the [Creative Commons Attribution-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nd/4.0/) - see the [LICENSE](LICENSE) file for details.
