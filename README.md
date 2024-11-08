@@ -1,7 +1,7 @@
 # Cat-Knight
 ![Cat Knight](https://github.com/ADreadfulReality/Cat-Knight/blob/main/Knight%20Cat%20(2).png?raw=true)
 
-### To view the sprites and planning board of this game, consider checking out my website!: 
+### To view the game sprites and their planning, consider checking out my website!: https://sites.google.com/view/catknight/capstone-project
 
 
 ## Table of Contents
@@ -62,6 +62,6 @@ To run _Cat Knight_ locally, follow these steps:
 I've faced a **heavy** amount of challenges throught this project and had to create various different test scripts in order to get the result I desired. Even the game now is pretty terrible mechnism wise but least I tried my best. I think the most set back was trying to create multiple spites for me since I'm more used to doing these on development platforms rather than all in a single script. Another thing was trying to make the game more difficult and imlementing hearts for the different mobs in the process. I had a lot of things I really wanted to make in the game but I didn't feel motivated enough to go back to my game and add on after I completed my Game Design course. I also want to move on to other future projects, but I'll come back to Cat Knight eventually.
 
 ## What I Learned
-
+Throughout the challenge of creating _Cat Knight_, I think I've learned a lot more on scripting with HTML, CSS, and JavaScript; leaving my usual comfort zone of just scripting with just Lua. I've also discovered Phaser from this project, which I think is a very helpful tool for game developing. I'm proud of my results in the end, even if I wasn't able to finish it and the game was rather buggy, but the efforts I put into creating this game helped me grow myself as someone who wants to become a game developer.
 ## License
 This project is licensed under the [Creative Commons Attribution-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nd/4.0/) - see the [LICENSE](LICENSE) file for details.
